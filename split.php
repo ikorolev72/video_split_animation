@@ -1,4 +1,9 @@
 <?php
+
+# This script split video to parts
+# korolev-ia@yandex.ru
+#
+
 require_once "./FfmpegEffects.php";
 ##########################
 # Set enviroment FONTCONFIG_FILE . This require for addTextAss effect
@@ -38,7 +43,7 @@ $effect->setGeneralSettings(
 # set ffmpeg new audio output settings
 $effect->setAudioOutputSettings(
     array(
-        'bitrate' => '128k',
+        'bitrate' => '192k',
         'codec' => 'aac',
     )
 );
@@ -67,7 +72,30 @@ $input = $params['input'];
 $outputPrefix = $params['outputPrefix'];
 $outputHeight = $params['outputHeight'];
 
+
+
 $returnArray = array();
+$returnArray['audio']=array();
+$returnArray['video']=array();
+
+
+# save audio stream
+###########################################################
+$outputAudio = "${outputPrefix}_audio.aac";
+$cmd = $effect->getAudio( $input, $outputAudio);
+if (!$cmd) {
+    echo $effect->getLastError();
+    exit(1);
+}
+if (!$effect->doExec($cmd)) {
+    $effect->writeToLog("Someting wrong with command: $cmd");
+    exit(1);
+}
+
+$stream = null;
+$effect->getStreamInfo( $outputAudio, "audio", $stream );
+array_push($returnArray['audio'], array("filename" => $outputAudio, "stream" => $stream));
+###########################################################
 
 foreach ($params['timeline'] as $timeline) {
     $start = $timeline['start'];
@@ -88,12 +116,12 @@ foreach ($params['timeline'] as $timeline) {
         exit(1);
     }
     if (!$effect->doExec($cmd)) {
-        $effect->writeToLog("Someting wrong while split file by command: $cmd");
+        $effect->writeToLog("Someting wrong with command: $cmd");
         exit(1);
     }
     $stream = null;
     $effect->getStreamInfo( $output, "video", $stream );
-    array_push($returnArray, array("filename" => $output, "stream" => $stream));
+    array_push($returnArray['video'], array("filename" => $output, "stream" => $stream));
 
 }
 

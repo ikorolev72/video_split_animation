@@ -347,68 +347,15 @@ class FfmpegEffects
 
 /**
  * accurateSplitVideo
- * change hue, saturation and brightness of video
+ * cut video part
  *
- * @param array   $params
- * @return array  Array of ffmpeg commands and additional properties
- */
-
-    public function accurateSplitVideo(
-        $params
-    ) {
-        $this->setLastError('');
-        $ffmpeg = $this->getFfmpegSettings('general', 'ffmpeg');
-        $ffmpegLogLevel = $this->getFfmpegSettings('general', 'ffmpegLogLevel');
-        $videoOutSettingsString = $this->getVideoOutSettingsString();
-        $audioOutSettingsString = $this->getAudioOutSettingsString();
-
-        $input = $params['input'];
-        $outputPrefix = $params['outputPrefix'];
-        $checkVideoExists = $params['checkVideoExists'];
-        if ($checkVideoExists && !file_exists($input)) {
-            $this->setLastError("File $input do not exists");
-            return '';
-        }
-
-        $output = array();
-
-        foreach ($params['timeline'] as $timeline) {
-
-            $start = $timeline['start'];
-            $end = $timeline['end'];
-            $duration = $end - $start;
-            $outputFilePath = "${outputPrefix}_${start}_${end}.ts";
-
-            $cmd = join(" ", [
-                "$ffmpeg -loglevel $ffmpegLogLevel  -y  ",
-                " -i $input -ss $start -t $duration ",
-                " -filter_complex \" ",
-                " setpts=PTS-STARTPTS, scale=w=-2:h=480 ",
-                " [v]\" ",
-                " -map \"[v]\" $videoOutSettingsString $outputFilePath",
-            ]
-            );
-
-            $record = array();
-            $record['start'] = $start;
-            $record['end'] = $end;
-            $record['duration'] = $duration;
-            $record['output'] = $outputFilePath;
-            $record['command'] = $cmd;
-            array_push($output, $record);
-        }
-
-//  cmd += `" -an -map "[v]" -c:v libx264 -f mpegts -preset veryfast ${output}`;
-        return $output;
-
-    }
-
-/**
- * accurateSplitVideo
- * change hue, saturation and brightness of video
- *
- * @param array   $params
- * @return array  Array of ffmpeg commands and additional properties
+ * @param string   $input
+ * @param string   $output
+ * @param string   $start
+ * @param string   $end
+ * @param string   $outputHeight
+ * @param string   $checkVideoExists
+ * @return string  Command ffmpeg
  */
 
     public function accurateSplitScaleVideo(
@@ -438,6 +385,86 @@ class FfmpegEffects
             " setpts=PTS-STARTPTS, scale=w=-2:h=$outputHeight ",
             " [v]\" ",
             " -map \"[v]\" $videoOutSettingsString $output",
+        ]
+        );
+        if ($this->getFfmpegSettings('general', 'showCommand')) {
+            echo "$cmd\n";
+        }
+
+        return $cmd;
+    }
+
+/**
+ * getAudio
+ * cut video part
+ *
+ * @param string   $input
+ * @param string   $output
+ * @return string  Command ffmpeg
+ */
+
+    public function getAudio(
+        $input,
+        $output
+    ) {
+        $this->setLastError('');
+        $ffmpeg = $this->getFfmpegSettings('general', 'ffmpeg');
+        $ffmpegLogLevel = $this->getFfmpegSettings('general', 'ffmpegLogLevel');
+        $videoOutSettingsString = $this->getVideoOutSettingsString();
+        $audioOutSettingsString = $this->getAudioOutSettingsString();
+        $data = null;
+        if (!$this->getStreamInfo($input, 'audio', $data)) {
+            $this->setLastError("Cannot get info about audio stream in file $input");
+            return '';
+        }
+
+        if (isset($data['codec_name']) && $data['codec_name'] === 'aac') {
+            $cmd = join(" ", [
+                "$ffmpeg -loglevel $ffmpegLogLevel  -y  ",
+                " -i $input ",
+                " -c:a copy $output",
+            ]);
+        } else {
+            $cmd = join(" ", [
+                "$ffmpeg -loglevel $ffmpegLogLevel  -y  ",
+                " -i $input ",
+                " -map \"0:a?\" $audioOutSettingsString $output",
+            ]);
+        }
+
+        if ($this->getFfmpegSettings('general', 'showCommand')) {
+            echo "$cmd\n";
+        }
+
+        return $cmd;
+    }
+
+/**
+ * stitchVideo
+ *
+ * @param array   $input
+ * @param string   $inputAudio
+ * @param string   $output
+ * @return string  Command ffmpeg
+ */
+
+    public function stitchVideo(
+        $input,
+        $inputAudio,
+        $output
+    ) {
+        $this->setLastError('');
+        $ffmpeg = $this->getFfmpegSettings('general', 'ffmpeg');
+        $ffmpegLogLevel = $this->getFfmpegSettings('general', 'ffmpegLogLevel');
+        $videoOutSettingsString = $this->getVideoOutSettingsString();
+        $audioOutSettingsString = $this->getAudioOutSettingsString();
+        $concatFiles = join("|", $input);
+
+        $cmd = join(" ", [
+            "$ffmpeg -loglevel $ffmpegLogLevel  -y  ",
+            " -i  $inputAudio ",
+            " -i  \"concat:$concatFiles\" ",
+            " $videoOutSettingsString $audioOutSettingsString $output",
         ]
         );
         if ($this->getFfmpegSettings('general', 'showCommand')) {
