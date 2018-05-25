@@ -47,6 +47,14 @@ $splitParams=json_decode ( file_get_contents( $splitVideoParamsFile ), true);
 $commands=$effect->accurateSplitVideo( $splitParams ) ;
 if( !$commands ) {
   echo $effect->getLastError();
+  exit(1);
 }
+
+
 echo var_dump( $commands );
+
+foreach ( $commands as $cmd ) {
+  $effect->doExec( $cmd['command'] );
+}
+
 

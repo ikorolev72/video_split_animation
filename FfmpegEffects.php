@@ -375,14 +375,14 @@ class FfmpegEffects
 
             $start = $timeline['start'];
             $end = $timeline['end'];
-            $duration = $start - $end;
+            $duration =  $end - $start ;
             $outputFilePath = "${outputPrefix}_${start}_${end}.ts";
 
             $cmd = join(" ", [
                 "$ffmpeg -loglevel $ffmpegLogLevel  -y  ",
                 " -i $input -ss $start -t $duration ",
                 " -filter_complex \" ",
-                " setpts=PTS-STARTPTS ",
+                " setpts=PTS-STARTPTS, scale=w=-2:h=480 ",
                 " [v]\" ",
                 " -map \"[v]\" $videoOutSettingsString $outputFilePath",
             ]
@@ -398,10 +398,6 @@ class FfmpegEffects
         }
 
 //  cmd += `" -an -map "[v]" -c:v libx264 -f mpegts -preset veryfast ${output}`;
-        if ($this->getFfmpegSettings('general', 'showCommand')) {
-            echo "$Command\n";
-        }
-
         return $output;
 
     }
