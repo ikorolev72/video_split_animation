@@ -1,0 +1,27 @@
+{
+  "input": "input.mp4",
+  "outputPrefix": "output",
+  "checkVideoExists" : false,
+  "timeline": [
+    {
+      "start" : 0,
+      "end" : 3.12
+    },
+    {
+      "start" : 3.12,
+      "end" : 4.12
+    },
+    {
+      "start" : 4.12,
+      "end" : 5.22
+    },
+    {
+      "start" : 5.22,
+      "end" : 13.12
+    },
+    {
+      "start" : 13.12,
+      "end" : 23.12
+    }
+  ]
+}
