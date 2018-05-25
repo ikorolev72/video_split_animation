@@ -298,7 +298,8 @@ class FfmpegEffects
  */
     public function writeToLog($message)
     {
-        echo "$message\n";
+        #echo "$message\n";
+        fwrite(STDERR, "$message\n");
     }
 
 /**
@@ -310,7 +311,7 @@ class FfmpegEffects
  * @param    array &$data          return data
  * @return    integer 1 for success, 0 for any error
  */
-    private function getStreamInfo($fileName, $streamType, &$data)
+    public function getStreamInfo($fileName, $streamType, &$data)
     {
         # parameter - 'audio' or 'video'
         $ffprobe = $this->getFfmpegSettings('general', 'ffprobe');
@@ -375,7 +376,7 @@ class FfmpegEffects
 
             $start = $timeline['start'];
             $end = $timeline['end'];
-            $duration =  $end - $start ;
+            $duration = $end - $start;
             $outputFilePath = "${outputPrefix}_${start}_${end}.ts";
 
             $cmd = join(" ", [
@@ -400,6 +401,50 @@ class FfmpegEffects
 //  cmd += `" -an -map "[v]" -c:v libx264 -f mpegts -preset veryfast ${output}`;
         return $output;
 
+    }
+
+/**
+ * accurateSplitVideo
+ * change hue, saturation and brightness of video
+ *
+ * @param array   $params
+ * @return array  Array of ffmpeg commands and additional properties
+ */
+
+    public function accurateSplitScaleVideo(
+        $input,
+        $output,
+        $start,
+        $end,
+        $outputHeight,
+        $checkVideoExists = false
+    ) {
+        $this->setLastError('');
+        $ffmpeg = $this->getFfmpegSettings('general', 'ffmpeg');
+        $ffmpegLogLevel = $this->getFfmpegSettings('general', 'ffmpegLogLevel');
+        $videoOutSettingsString = $this->getVideoOutSettingsString();
+        $audioOutSettingsString = $this->getAudioOutSettingsString();
+
+        if ($checkVideoExists && !file_exists($input)) {
+            $this->setLastError("File $input do not exists");
+            return '';
+        }
+        $duration = $end - $start;
+
+        $cmd = join(" ", [
+            "$ffmpeg -loglevel $ffmpegLogLevel  -y  ",
+            " -i $input -ss $start -t $duration ",
+            " -filter_complex \" ",
+            " setpts=PTS-STARTPTS, scale=w=-2:h=$outputHeight ",
+            " [v]\" ",
+            " -map \"[v]\" $videoOutSettingsString $output",
+        ]
+        );
+        if ($this->getFfmpegSettings('general', 'showCommand')) {
+            echo "$cmd\n";
+        }
+
+        return $cmd;
     }
 
 /**

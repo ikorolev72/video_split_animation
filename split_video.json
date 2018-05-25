@@ -2,6 +2,7 @@
   "input": "input.mp4",
   "outputPrefix": "output",
   "checkVideoExists" : false,
+  "outputHeight": 480,
   "timeline": [
     {
       "start" : 0,
