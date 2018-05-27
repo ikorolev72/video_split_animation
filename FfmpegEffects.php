@@ -6,7 +6,7 @@
  * and have several function for effects, like
  * transitions, mix audio, etc
  * @author korolev-ia [at] yandex.ru
- * @version 3.0.1
+ * @version 3.0.2
  */
 
 class FfmpegEffects
@@ -473,6 +473,42 @@ class FfmpegEffects
 
         return $cmd;
     }
+
+
+/**
+ * addAnimation
+ *
+ * @param array   $input
+ * @param string   $assFile Subtittles file in ass format
+ * @param string   $output
+ * @return string  Command ffmpeg
+ */
+
+public function addAnimation(
+	$input,
+	$assFile,
+	$output
+) {
+	$this->setLastError('');
+	$ffmpeg = $this->getFfmpegSettings('general', 'ffmpeg');
+	$ffmpegLogLevel = $this->getFfmpegSettings('general', 'ffmpegLogLevel');
+	$videoOutSettingsString = $this->getVideoOutSettingsString();
+	$audioOutSettingsString = $this->getAudioOutSettingsString();
+
+
+	$cmd = join(" ", [
+			"$ffmpeg -loglevel $ffmpegLogLevel  -y  ",
+			" -i  $input ",
+			" -vf  \"ass=$assFile\" ",
+			"  $videoOutSettingsString $output" 
+	]
+	);
+	if ($this->getFfmpegSettings('general', 'showCommand')) {
+			echo "$cmd\n";
+	}
+
+	return $cmd;
+}
 
 /**
  * doExec

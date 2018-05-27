@@ -1,12 +1,18 @@
 {
   "input": "input.mp4",
   "outputPrefix": "output",
-  "checkVideoExists" : false,
   "outputHeight": 480,
+  "checkVideoExists" : false,
   "timeline": [
     {
       "start" : 0,
-      "end" : 3.12
+      "end" : 3.12,
+      "animation": {
+        "effect": "effect8",
+        "start": 0.1,
+        "end": 2.8,
+        "text": "We are releasing an educational \\Nmobile app that will have quick "
+      }
     },
     {
       "start" : 3.12,
@@ -18,11 +24,23 @@
     },
     {
       "start" : 5.22,
-      "end" : 13.12
+      "end" : 13.12,
+      "animation": {
+        "effect": "effect4",
+        "start": 0.1,
+        "end": 5.8,
+        "text": "We are releasing an educational \\Nmobile app that will have quick "
+      }
     },
     {
       "start" : 13.12,
-      "end" : 23.12
+      "end" : 23.12,
+      "animation": {
+        "effect": "effect5",
+        "start": 0.1,
+        "end": 6.8,
+        "text": "Money fast !!!! 1-2-3 go-go-go "
+      }
     }
   ]
 }

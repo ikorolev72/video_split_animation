@@ -57,7 +57,7 @@ $effect->setVideoOutputSettings(
     array(
         'format' => 'mpegts',
         'preset' => 'veryslow',
-        'crf' => 1,
+        'crf' => 16,
     )
 );
 #echo "Settings for output video ffmpeg:";
