@@ -6,7 +6,7 @@
  * and have several function for effects, like
  * transitions, mix audio, etc
  * @author korolev-ia [at] yandex.ru
- * @version 3.0.2
+ * @version 3.0.3
  */
 
 class FfmpegEffects
@@ -474,9 +474,8 @@ class FfmpegEffects
         return $cmd;
     }
 
-
 /**
- * addAnimation
+ * textAndImageAnimation
  *
  * @param array   $input
  * @param string   $assFile Subtittles file in ass format
@@ -484,7 +483,63 @@ class FfmpegEffects
  * @return string  Command ffmpeg
  */
 
-public function addAnimation(
+    public function textAndImageAnimation(
+        $input,
+        $assFile,
+        $data,
+        $output
+    ) {
+        $this->setLastError('');
+        $ffmpeg = $this->getFfmpegSettings('general', 'ffmpeg');
+        $ffmpegLogLevel = $this->getFfmpegSettings('general', 'ffmpegLogLevel');
+        $videoOutSettingsString = $this->getVideoOutSettingsString();
+				$audioOutSettingsString = $this->getAudioOutSettingsString();
+
+				$image=$data['image'];
+				$start=$data['start'];
+				$end=$data['end'];
+				$x=$data['x'];
+				$y=$data['y'];
+				$width=$data['width'];
+				$height=$data['height'];
+				$fadeInDuration=$data['fadein'];
+				$fadeOutDuration=$data['fadeout'];
+				$fadeIn='null';
+				$fadeOut='null';
+				if( $fadeInDuration ) {
+					$fadeIn=" fade=in:st=$start:d=$fadeInDuration";
+				}
+				if( $fadeOutDuration ) {
+					$fadeOut=" fade=out:st=".($end-$fadeOutDuration).":d=$fadeOutDuration";
+				}
+
+
+        $cmd = join(" ", [
+            "$ffmpeg -loglevel $ffmpegLogLevel  -y  ",
+            " -i  $input ",
+            " -r 1 -i $image ",
+            " -filter_complex  \"[0:0]null [orig]; [1:0] scale=w=$width:h=$height, $fadeIn, $fadeOut [image]; [orig][image] overlay=x=$x:y=$y, ass=$assFile\"  ",
+            "  $videoOutSettingsString $output",
+        ]
+        );
+        if ($this->getFfmpegSettings('general', 'showCommand')) {
+            echo "$cmd\n";
+        }
+
+        return $cmd;
+    }
+
+
+/**
+ * textAnimation
+ *
+ * @param array   $input
+ * @param string   $assFile Subtittles file in ass format
+ * @param string   $output
+ * @return string  Command ffmpeg
+ */
+
+public function textAnimation(
 	$input,
 	$assFile,
 	$output
@@ -495,12 +550,11 @@ public function addAnimation(
 	$videoOutSettingsString = $this->getVideoOutSettingsString();
 	$audioOutSettingsString = $this->getAudioOutSettingsString();
 
-
 	$cmd = join(" ", [
 			"$ffmpeg -loglevel $ffmpegLogLevel  -y  ",
 			" -i  $input ",
-			" -vf  \"ass=$assFile\" ",
-			"  $videoOutSettingsString $output" 
+			" -vf \" ass=$assFile\"  ",
+			"  $videoOutSettingsString $output",
 	]
 	);
 	if ($this->getFfmpegSettings('general', 'showCommand')) {
@@ -509,6 +563,131 @@ public function addAnimation(
 
 	return $cmd;
 }
+
+
+/**
+ * prepareSubtitles
+ * prepare ASS subtitles file
+ *
+ * @param    array     $data  array( "start": 0.1, "end": 2.8,           "fadein": 0.5, "fadeout": 0.5, "text": "Hello Ibraham", "x": 300, "y": 100, "color": "&H0000FFFF", "font": "Verdana", "size": 40 )
+ * @param    string    $assFile
+ * @param    string    $assDirectStyle eg 'myStyle0: My,Arial,20,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,6,1,0,0,2,10,25,35,1')
+ * @param    string    $assTextDirect  eg Dialogue: 0,0:00:02.93,0:00:05.61,YTStyle,,0,0,0,,{\1a&HFF&\2a&HFF&\3a&HFF&\4a&HFF&\fs66}\h{\r\fad(0,200)}{\move(640,564,640,498,0,1000)}hey JV partners its Todd gross here on {\1a&HFF&\2a&HFF&\3a&HFF&\4a&HFF&\fs66}\h{\r}
+ * @param    string    $width
+ * @param    string    $height*
+ */
+    public function prepareSubtitles(
+        $data,
+        $assFile,
+        $assDirectStyle = false,
+        $assTextDirect = false,
+        $width = 854,
+        $height = 480
+    ) {
+        $this->setLastError('');
+# default text settings
+
+        $fade = '';
+        $x = 100;
+        $y = 100;
+        $size = 40;
+        $color = '&H0000FFFF';
+
+        if (isset($data['font'])) {
+            $font = $data['font'];
+        }
+        if (isset($data['size'])) {
+            $size = $data['size'];
+        }
+        if (isset($data['y'])) {
+            $y = $data['y'];
+        }
+        if (isset($data['x'])) {
+            $x = $data['x'];
+        }
+        if (isset($data['color'])) {
+            $color = $data['color'];
+        }
+        if (isset($data['fadein']) && isset($data['fadeout'])) {
+            $fade = "{\\r\\fad(  " . ($data['fadein'] * 1000) . "," . ($data['fadeout'] * 1000) . ")}";
+				}
+				#print var_dump( $data );
+        $styleName = "StyleTextAndVideo";
+        $style = "Style: $styleName,$font,$size,$color,&H0000FFFF,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,1,5,5,8,$x,50,$y,1";
+        $text = "$fade" . $data['text'];
+        $since = $this->float2time($data['start']);
+        $to = $this->float2time($data['end']);
+        $dialog = "Dialogue: 0,$since,$to,$styleName,,0,0,0,,$text" . PHP_EOL;
+        if ($assDirectStyle) {
+            $style = $assDirectStyle;
+        }
+        if ($assTextDirect) {
+            $dialog = $assTextDirect;
+        }
+        $content = "[Script Info]
+; Script generated by Aegisub 3.2.2
+; http://www.aegisub.org/
+ScriptType: v4.00+
+PlayResX: $width
+PlayResY: $height
+WrapStyle: 0
+YCbCr Matrix: TV.601
+
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,Arial,40,&H00525252,&H0000FFFF,&H00FCFCFD,&H00000000,0,-1,0,0,100,100,0,0,1,2,0,8,0,0,300,1
+$style
+
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+$dialog
+";
+
+        if (!file_put_contents($assFile, $content)) {
+            $this->writeToLog("Cannot save file '$assFile'");
+            return 0;
+        }
+
+        return (true);
+
+    }
+
+/**
+ * time2float
+ * this function translate time in format 00:00:00.00 to seconds
+ *
+ * @param    string $t
+ * @return    float
+ */
+
+    public function time2float($t)
+    {
+        $matches = preg_split("/:/", $t, 3);
+        if (array_key_exists(2, $matches)) {
+            list($h, $m, $s) = $matches;
+            return ($s + 60 * $m + 3600 * $h);
+        }
+        $h = 0;
+        list($m, $s) = $matches;
+        return ($s + 60 * $m);
+    }
+
+/**
+ * float2time
+ * this function translate time from seconds to format 00:00:00.00
+ *
+ * @param    float $i
+ * @return    string
+ */
+    public function float2time($i)
+    {
+        $h = intval($i / 3600);
+        $m = intval(($i - 3600 * $h) / 60);
+        $s = $i - 60 * floatval($m) - 3600 * floatval($h);
+        return sprintf("%01d:%02d:%05.2f", $h, $m, $s);
+    }
 
 /**
  * doExec

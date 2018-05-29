@@ -1,45 +1,50 @@
 {
-  "input": "input.mp4",
-  "outputPrefix": "output",
-  "outputHeight": 480,
-  "checkVideoExists" : false,
+  "info": {
+    "input": "ramzan_empty.mp4",
+    "outputPrefix": "output",
+    "outputHeight": 480,
+    "checkVideoExists": false
+  },
   "timeline": [
     {
-      "start" : 0,
-      "end" : 3.12,
+      "start": 0,
+      "end": 3.12,
       "animation": {
-        "effect": "effect8",
-        "start": 0.1,
-        "end": 2.8,
-        "text": "We are releasing an educational \\Nmobile app that will have quick "
+        "effect": "none"
       }
     },
     {
-      "start" : 3.12,
-      "end" : 4.12
+      "start": 3.12,
+      "end": 4.12
     },
     {
-      "start" : 4.12,
-      "end" : 5.22
+      "start": 4.12,
+      "end": 5.22
     },
     {
-      "start" : 5.22,
-      "end" : 13.12,
+      "start": 5.22,
+      "end": 11.00,
       "animation": {
-        "effect": "effect4",
-        "start": 0.1,
-        "end": 5.8,
-        "text": "We are releasing an educational \\Nmobile app that will have quick "
+        "effect": "textAnimation",
+        "text": {
+          "start": 0.0,
+          "end": 5.0,
+          "fadein": 0.5,
+          "fadeout": 0.5,
+          "text": "Hello Ibraham",
+          "x": 300,
+          "y": 100,
+          "color": "&H0000FFFF",
+          "font": "Verdana",
+          "size": 40
+        }
       }
     },
     {
-      "start" : 13.12,
-      "end" : 23.12,
+      "start": 11.00,
+      "end": 17.00,
       "animation": {
-        "effect": "effect5",
-        "start": 0.1,
-        "end": 6.8,
-        "text": "Money fast !!!! 1-2-3 go-go-go "
+        "effect": "none"
       }
     }
   ]

@@ -108,7 +108,6 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             $ass .= "Dialogue: 0,$since,$to,$styleName,,0,0,0,,$text\n";
         }
         if (!file_put_contents($fileName, $ass)) {
-					print "ERRRORRRRR!!!! :$!";
             $this->setLastError("Cannot write content to file '$fileName'");
             return (false);
         }
@@ -421,32 +420,65 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 }
             }
             return ($mySub);
-				}
-        if ('effect8' == $effectName) {
-					$k = 0;
-					for ($i = 0; $i < $lineCount; $i++) {
-							if (!array_key_exists($lineNumber + $i, $this->subtitles)) {
-									continue;
-							}
+        }
+        if ('textAndImage' == $effectName) {
+                $mySub[$k] = array();
+                $mySub[$k] = $this->subtitles[$lineNumber + $i];
+                $mySub[$k]['style'] = $this->styles[array_rand($this->styles)];
+                #$mySub[$k]['style']='MyStyle2' ; # fix style
+                $mySub[$k]['start'] = $this->subtitles[$lineNumber + $i]['start'];
+                $mySub[$k]['end'] = $this->subtitles[$lineNumber + $i]['end'];
+                $mySub[$k]['first_line'] = $this->subtitles[$lineNumber + $i]['first_line'];
 
-							$mySub[$k] = array();
-							$mySub[$k] = $this->subtitles[$lineNumber + $i];
-							$mySub[$k]['style'] = $this->styles[array_rand($this->styles)];
-							#$mySub[$k]['style']='MyStyle2' ; # fix style
-							$mySub[$k]['start'] = $this->subtitles[$lineNumber + $i]['start'];
-							$mySub[$k]['end'] = $this->subtitles[$lineNumber + $i]['end'] ;
-							$mySub[$k]['first_line'] = $this->subtitles[$lineNumber + $i]['first_line'];
-
-							$mySub[$k]['text'] = "{\\q1\\an5\\fscx0\\fscy0\\t(0,1000,\\fscx100\\fscy100)\\fad(0, 1000)} " . $this->subtitles[$lineNumber + $i]['text'];
-							$mySub[$k]['second_line'] = $mySub[$k]['text'];
-
-							$k++;
-					}
-					return ($mySub);
-			}				
+                $mySub[$k]['text'] = "{\\q1\\an5\\fscx0\\fscy0\\t(0,1000,\\fscx100\\fscy100)\\fad(0, 1000)} " . $this->subtitles[$lineNumber + $i]['text'];
+                $mySub[$k]['second_line'] = $mySub[$k]['text'];
+            return ($mySub);
+        }
 
         return (false);
     }
+
+/**
+ * doEffectTextAndImage
+ * this function take subtitles from line  $lineNumber and apply effect to next $lineCount
+
+ *
+ * @param    array $input
+ * @param    integer $lineCount
+ * @param    string $effectName
+ * @return    array
+ */
+/*
+
+*/
+    public function doEffectTextAndImage($input)
+    {
+				$mySub = array();				
+        $k = 0;
+        for ($i = 0; $i < $lineCount; $i++) {
+            if (!array_key_exists($lineNumber + $i, $this->subtitles)) {
+                continue;
+            }
+
+            $mySub[$k] = array();
+            $mySub[$k] = $this->subtitles[$lineNumber + $i];
+            $mySub[$k]['style'] = $this->styles[array_rand($this->styles)];
+            #$mySub[$k]['style']='MyStyle2' ; # fix style
+            $mySub[$k]['start'] = $this->subtitles[$lineNumber + $i]['start'];
+            $mySub[$k]['end'] = $this->subtitles[$lineNumber + $i]['end'] + 2;
+            $mySub[$k]['first_line'] = $this->subtitles[$lineNumber + $i]['first_line'];
+
+            $x = rand(20, 55);
+            $y = intval(($i + 1) * ($this->height / ($lineCount + 3)));
+            $mySub[$k]['text'] = "{\\q1\\pos( $x, $y )\\fad(500, 2000)} " . $this->subtitles[$lineNumber + $i]['text'];
+            $mySub[$k]['second_line'] = $mySub[$k]['text'];
+
+            $k++;
+        }
+        return ($mySub);
+		}
+		
+
 
     private function fixTimeLine()
     {
