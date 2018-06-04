@@ -1,0 +1,147 @@
+{
+  "info": {
+    "input": "ramzan_empty.mp4",
+    "outputPrefix": "output",
+    "outputHeight": 480,
+    "outputWidth": 480,
+    "checkVideoExists": false
+  },
+  "timeline": [
+    {
+      "start": 0,
+      "end": 3.12,
+      "animation": {
+        "effect": "textAnimation",
+        "start": 0,
+        "end": 3.12,
+        "fadeIn": 0.5,
+        "fadeOut": 0.5,
+        "text": {
+          "text": "Hello Ibraham",
+          "x": 300,
+          "y": 100,
+          "color": "&H0000FFFF",
+          "font": "Verdana",
+          "size": 40
+        }
+      }
+    },
+    {
+      "start": 3.12,
+      "end": 4.12
+    },
+    {
+      "start": 4.12,
+      "end": 5.00
+    },
+    {
+      "start": 5.00,
+      "end": 13.00,
+      "animation": {
+        "effect": "moneyCounterAnimation",
+        "start": 0,
+        "end": 8,
+        "fadeIn": 0.5,
+        "fadeOut": 0.5,
+        "text": {
+          "currency": "$",
+          "color": "&H5B2315&",
+          "font": "Arial Black",
+          "size": 38
+        },
+        "move": [
+          {
+            "start": 0,
+            "end": 0.5,
+            "x0": -100,
+            "y0": 170,
+            "x1": 72,
+            "y1": 170,
+            "counterStart": 0,
+            "counterEnd": 0
+          },
+          {
+            "start": 0.5,
+            "end": 0.6,
+            "x0": 72,
+            "y0": 170,
+            "x1": 65,
+            "y1": 170,
+            "counterStart": 0,
+            "counterEnd": 0
+          },
+          {
+            "start": 0.6,
+            "end": 0.7,
+            "x0": 65,
+            "y0": 170,
+            "x1": 70,
+            "y1": 170,
+            "counterStart": 0,
+            "counterEnd": 0
+          },
+          {
+            "start": 0.7,
+            "end": 1.4,
+            "x0": 65,
+            "y0": 170,
+            "x1": 70,
+            "y1": 170,
+            "counterStart": 0,
+            "counterEnd": 0
+          },
+          {
+            "start": 1.4,
+            "end": 4.4,
+            "x0": 70,
+            "y0": 170,
+            "x1": 70,
+            "y1": 168,
+            "counterStart": 0,
+            "counterEnd": 1220
+          },
+          {
+            "start": 4.4,
+            "end": 5,
+            "x0": 70,
+            "y0": 168,
+            "x1": 70,
+            "y1": 167,
+            "counterStart": 1220,
+            "counterEnd": 1392.94
+          },
+          {
+            "start": 5,
+            "end": 8,
+            "x0": 70,
+            "y0": 167,
+            "x1": 70,
+            "y1": 164,
+            "counterStart": 1392.94,
+            "counterEnd": 1392.94
+          }
+        ]
+      }
+    },
+    {
+      "start": 13.00,
+      "end": 17.00,
+      "animation": {
+        "effect": "textSkewShadowAnimation",
+        "start": 0,
+        "end": 4,
+        "fadeIn": 0.5,
+        "fadeOut": 0.5,
+        "text": {
+          "text": "$ 100,500.99",
+          "x": 240,
+          "y": 240,
+          "alignment": 2,
+          "color": "&H00FFFFFF",
+          "font": "Verdana",
+          "size": 60
+        }
+      }
+    }
+  ]
+}

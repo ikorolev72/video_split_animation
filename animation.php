@@ -46,53 +46,144 @@ $effect->setVideoOutputSettings(
 $input = $params['info']['input'];
 $outputPrefix = $params['info']['outputPrefix'];
 $outputHeight = $params['info']['outputHeight'];
+$outputWidth = $params['info']['outputWidth'];
 
 $returnArray = array();
 $returnArray['video'] = array();
 $returnArray['audio'] = $params['audio'];
 
 foreach ($params['timeline'] as $timeline) {
-#echo var_dump( $sub_edited->subtitles );
-    #$assFile = "${outputPrefix}_${start}_${end}.ass";
     $videoFile = $timeline['filename'];
-    if (isset($timeline['animation']['effect']) && $timeline['animation']['effect'] === "textAnimation") {
-        $tempFile = tempnam($tempDir, 'Tux');
-        $tempFile = "tmp_file";
+    $tempFile = time() . rand(10000, 99999);
+
+    if (isset($timeline['animation']['effect']) && $timeline['animation']['effect'] === "textSkewShadowAnimation") {
         $start = $timeline['start'];
         $end = $timeline['end'];
         $assFile = $tempFile . ".ass";
 
-        if (!$effect->prepareSubtitles($timeline['animation']['text'], $assFile)) {
-            $effect->writeToLog("Cannot save ass subtitles file $assFile :" . $effect->getLastError());
-            continue;
-        }
-
-        # todo
-        #$tmpVideoFile = "${outputPrefix}_${start}_${end}_animation.ts";
         $tmpVideoFile = $tempFile . ".ts";
-
-        $cmd = $effect->textAnimation(
+        $cmd = $effect->textSkewShadowAnimation(
             $videoFile,
             $assFile,
-            $tmpVideoFile
+            $timeline['animation'],
+            $tmpVideoFile,
+            $outputWidth,
+            $outputHeight
         );
 
         if (!$cmd) {
             $effect->writeToLog("Someting wrong while add animation : $cmd ." . $effect->getLastError());
-            exit(1);
+            array_push($returnArray['video'], array("filename" => $videoFile));
+            continue;
+            //exit(1);
         }
         if (!$effect->doExec($cmd)) {
             $effect->writeToLog("Someting wrong with command: $cmd");
             exit(1);
         }
 
-        @unlink($tempFile);
+        @unlink($assFile);
+        array_push($returnArray['video'], array("filename" => $tmpVideoFile));
+        continue;
+    }    
+
+    if (isset($timeline['animation']['effect']) && $timeline['animation']['effect'] === "moneyCounterAnimation") {
+        $start = $timeline['start'];
+        $end = $timeline['end'];
+        $assFile = $tempFile . ".ass";
+
+        $tmpVideoFile = $tempFile . ".ts";
+        $cmd = $effect->moneyCounterAnimation(
+            $videoFile,
+            $assFile,
+            $timeline['animation'],
+            $tmpVideoFile,
+            $outputWidth,
+            $outputHeight
+        );
+
+        if (!$cmd) {
+            $effect->writeToLog("Someting wrong while add animation : $cmd ." . $effect->getLastError());
+            array_push($returnArray['video'], array("filename" => $videoFile));
+            continue;
+            //exit(1);
+        }
+        if (!$effect->doExec($cmd)) {
+            $effect->writeToLog("Someting wrong with command: $cmd");
+            exit(1);
+        }
+
+        @unlink($assFile);
+        array_push($returnArray['video'], array("filename" => $tmpVideoFile));
+        continue;
+    }
+
+//  text animation effect
+
+    if (isset($timeline['animation']['effect']) && $timeline['animation']['effect'] === "textAndImageAnimation") {
+        $start = $timeline['start'];
+        $end = $timeline['end'];
+        $assFile = $tempFile . ".ass";
+
+        $tmpVideoFile = $tempFile . ".ts";
+        $cmd = $effect->textAndImageAnimation(
+            $videoFile,
+            $assFile,
+            $timeline['animation'],
+            $tmpVideoFile,
+            $outputWidth,
+            $outputHeight
+        );
+
+        if (!$cmd) {
+            $effect->writeToLog("Someting wrong while add animation : $cmd ." . $effect->getLastError());
+            array_push($returnArray['video'], array("filename" => $videoFile));
+            continue;
+            //exit(1);
+        }
+        if (!$effect->doExec($cmd)) {
+            $effect->writeToLog("Someting wrong with command: $cmd");
+            exit(1);
+        }
+
+        @unlink($assFile);
+        array_push($returnArray['video'], array("filename" => $tmpVideoFile));
+        continue;
+    }
+
+//  text animation effect
+
+    if (isset($timeline['animation']['effect']) && $timeline['animation']['effect'] === "textAnimation") {
+        $start = $timeline['start'];
+        $end = $timeline['end'];
+        $assFile = $tempFile . ".ass";
+
+        $tmpVideoFile = $tempFile . ".ts";
+        $cmd = $effect->textAnimation(
+            $videoFile,
+            $assFile,
+            $timeline['animation'],
+            $tmpVideoFile,
+            $outputWidth,
+            $outputHeight
+        );
+
+        if (!$cmd) {
+            $effect->writeToLog("Someting wrong while add animation : $cmd ." . $effect->getLastError());
+            array_push($returnArray['video'], array("filename" => $videoFile));
+            continue;
+            //exit(1);
+        }
+        if (!$effect->doExec($cmd)) {
+            $effect->writeToLog("Someting wrong with command: $cmd");
+            exit(1);
+        }
+
         @unlink($assFile);
         array_push($returnArray['video'], array("filename" => $tmpVideoFile));
         continue;
     }
     array_push($returnArray['video'], array("filename" => $videoFile));
-    #array_push($returnArray['timeline'], $timeline);
 }
 file_put_contents($outputJson, json_encode($returnArray, JSON_PRETTY_PRINT));
 

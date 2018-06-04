@@ -1,0 +1,95 @@
+<html>
+
+<head>
+  <title>Animation effect php developers guide</title>
+  <LINK href='main.css' type=text/css rel=stylesheet>
+
+</head>
+
+<body>
+  <a href="index.html">[home]</a>
+
+  <h2>Animation effect php developers guide</h2>
+  <hr>
+  <h3>FfmpegEffect php class</h3>
+
+  <h4>What is it?</h4>
+  This php class is the wripper for ffmpeg ( http://ffmpeg.org ) and have several function for effects, like transitions, mix
+  audio, etc
+  <h4>How to use ?</h4>
+
+
+  Now realized several animation effects:
+  <ul>
+  <li>textAnimation - enable text in any moment with ( or without ) fade in/out</li>
+  <li>textAndImageAnimation - enable text and image in any moment with ( or without ) fade in/out</li>
+  <li>moneyCounterAnimation - enable currency counter with started and finished values and movement</li>
+  <li>textSkewShadowAnimation - enable text in any moment with ( or without ) fade in/out and skew+shadow  </li>
+  </ul>
+  All function have the same arguments:
+  <ul>
+  <li>    * @param string   $input - input video file</li>
+  <li>    * @param string   $assFile -  temporary name for ass file</li>
+  <li>    * @param array    $data - "animation" array data</li> 
+  <li>    * @param string   $output - output video file</li>
+  <li>    * @param string   $width</li>
+  <li>    * @param string   $height</li>
+  <li>    * @return string  Command ffmpeg</li>
+  </ul>
+You can request any effect with OO interface to FfmpegEffects class:
+  <pre>
+require_once "./FfmpegEffects.php";
+$effect = new FfmpegEffects();
+// set output video parameters
+$effect->setVideoOutputSettings(
+    array(
+        'format' => 'mpegts',
+        'preset' => 'veryfast',
+        'crf' => 23,
+    )
+);
+$string="
+  {
+  "effect": "textSkewShadowAnimation",
+  "start": 0,
+  "end": 4,
+  "fadeIn": 0.5,
+  "fadeOut": 0.5,
+  "text": {
+    "text": "$ 100,500.99",
+    "x": 240,
+    "y": 240,
+    "alignment": 2,
+    "color": "&H00FFFFFF",
+    "font": "Verdana",
+    "size": 60
+  }
+  ";
+  $data=json_decode($string, true);
+  $cmd = $effect->textSkewShadowAnimation(
+    '/tmp/input.mp4',
+    '/tmp/ass_tmp.ass',
+    $data,
+    '/tmp/output.mp4',
+    854,
+    480
+);
+
+if (!$cmd) {
+    $effect->writeToLog("Someting wrong while add animation : $cmd ." . $effect->getLastError());
+    array_push($returnArray['video'], array("filename" => $videoFile));
+    continue;
+    //exit(1);
+}
+if (!$effect->doExec($cmd)) {
+    $effect->writeToLog("Someting wrong with command: $cmd");
+    exit(1);
+}
+exit(0);
+
+</pre>
+
+
+</body>
+
+</html>

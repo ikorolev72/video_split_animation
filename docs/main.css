@@ -1,0 +1,56 @@
+body {
+	font-family: verdana, arial, sans-serif; 
+	/*font-size: "+1";*/
+}
+
+.left_div {
+	width: 95%;
+	height: 100%;
+	float:left;
+}
+
+.right_div {
+	width: 5%;
+	height: 100%;
+	float:right;
+}
+
+.cronbox{
+	height:100px;
+	width:120px;
+}
+
+.json_view {
+	background-color: #EFEFFB;
+	font-family:  "Courier New", monospace, "courier", "arial";
+	font-size: smaller;
+}
+
+.li_desc {
+	background-color: #210B61;
+	color: #FFFFFF;
+	font-family: "arial";
+
+}
+.leftimg {
+	float: left;
+	/* Выравнивание по левому краю */
+	margin: 7px 7px 7px 0;
+	/* Отступы вокруг картинки */
+}
+
+.rightimg {
+	float: right;
+	/* Выравнивание по правому краю  */
+	margin: 7px 0 7px 7px;
+	/* Отступы вокруг картинки */
+}
+
+.section {
+	float: left;
+	/* Выравнивание по правому краю  */
+	margin: 7px 0 7px 7px;
+	width: 80%;
+	/* Отступы вокруг картинки */
+} 
+

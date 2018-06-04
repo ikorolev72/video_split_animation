@@ -3,6 +3,7 @@
     "input": "ramzan_empty.mp4",
     "outputPrefix": "output",
     "outputHeight": 480,
+    "outputWidth": 480,
     "checkVideoExists": false
   },
   "timeline": [
@@ -10,7 +11,19 @@
       "start": 0,
       "end": 3.12,
       "animation": {
-        "effect": "none"
+        "effect": "textAnimation",
+        "start": 0,
+        "end": 3.12,
+        "fadeIn": 0.5,
+        "fadeOut": 0.5,
+        "text": {
+          "text": "Hello Ibraham",
+          "x": 300,
+          "y": 100,
+          "color": "&H0000FFFF",
+          "font": "Verdana",
+          "size": 40
+        }
       }
     },
     {
@@ -25,18 +38,28 @@
       "start": 5.22,
       "end": 11.00,
       "animation": {
-        "effect": "textAnimation",
+        "effect": "textAndImageAnimation",
+        "start": 0,
+        "end": 5.78,
+        "fadeIn": 0.5,
+        "fadeOut": 0.5,
         "text": {
-          "start": 0.0,
-          "end": 5.0,
-          "fadein": 0.5,
-          "fadeout": 0.5,
           "text": "Hello Ibraham",
-          "x": 300,
-          "y": 100,
-          "color": "&H0000FFFF",
-          "font": "Verdana",
-          "size": 40
+          "x": 272,
+          "y": 270,
+          "color": "&H008FD8EB",
+          "font": "Code Bold",
+          "size": 26
+        },
+        "image": {
+          "image": "photo.jpg",
+          "border": true,
+          "borderColor": "yellow",
+          "borderWidth": 5,
+          "width": 200,
+          "height": 150,
+          "x": 255,
+          "y": 115
         }
       }
     },

@@ -1,0 +1,95 @@
+<html>
+
+<head>
+  <title>Animation effect ASS developers guide</title>
+  <LINK href='main.css' type=text/css rel=stylesheet>
+
+</head>
+
+<body>
+  <a href="index.html">[home]</a>
+  <h2>Animation effect ASS developers guide</h2>
+  <hr> This doc describe how to do the text animation effect for video with ffmpeg and ASS subtitles. 
+  Docs for specified ASS  effects available
+  <a href="http://docs.aegisub.org/3.2/ASS_Tags/">here</a>. Mostly effective use for this the
+  <a href="http://www.aegisub.org/"> Aegisub </a>  tool for creating and modifying subtitles.
+  <br> This format (ASS ) have 2 main sections:
+  <b> [V4+ Styles] </b> and
+  <b> [Events] </b> . In style sections we describe common style settings ( font, fontsize, color, bold, italian, etc), in event section we
+  write the any text with (or without) additional properties, animation tranform, movement, etc .
+  <br> Eg:
+  <pre>
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 480
+PlayResY: 480
+WrapStyle: 0
+YCbCr Matrix: TV.601
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,Arial,40,&H00525252,&H0000FFFF,&H00FCFCFD,&H00000000,0,-1,0,0,100,100,0,0,1,2,0,8,0,0,300,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.00,0:00:05.00,textSkewShadowAnimation,,0,0,0,,Any text
+  
+  </pre> Let's imagine we need to do the 'move' text effect from coordinates (100, 100) to coordinates (200, 200). Ok, let's prepare
+  next ass file. I this case, we can add ASS tag
+  <a href="http://docs.aegisub.org/3.2/ASS_Tags/#movement">move</a> into dialog string, and text will move from initial point to end point.
+  <pre>
+Dialogue: 0,0:00:00.00,0:00:05.00,textSkewShadowAnimation,,0,0,0,,{\move( 100,100, 200, 200)} Any text    
+  </pre> Ok, what about fadeIn and fadeOut effect ? No problem:
+  <pre>
+    Dialogue: 0,0:00:00.00,0:00:05.00,textSkewShadowAnimation,,0,0,0,,{\fad(500,500)} {\move( 100,100, 200, 200)} Any text    
+</pre> May be shadow or change alignment:
+  <pre>
+    Dialogue: 0,0:00:00.00,0:00:05.00,textSkewShadowAnimation,,0,0,0,,{\shad10}{a6}{\fad(500,500)} {\move( 100,100, 200, 200)} Any text    
+</pre> See the full docs for specified ASS effects available
+  <a href="http://docs.aegisub.org/3.2/ASS_Tags/">here</a>
+
+  <hr item-height="3">
+  <h3> Additional info:</h3>
+  <div id="alignment" class="section">
+    <a href="#alignment"></a>
+    <h4>Alignment</h4>
+    <hr> Alignment defined as digital keyboard ( digit from 1 to 9 ). There is the sample for 'text' with position in the center
+    with different alignment
+    <image src="alignment.png" item-width="300" item-height="300" class="leftimg"></image>
+  </div>
+
+  <div id="color" class="section">
+    <a href="#color"></a>
+    <h4>Colors</h4>
+    <hr> Color values are expressed in hexadecimal BGR format as &HBBGGRR& or ABGR (with alpha channel) as &HAABBGGRR&. Transparency
+    (alpha) can be expressed as &HAA&. Note that in the alpha channel, 00 is opaque and FF is transparent
+  </div>
+
+  <div id="special" class="section">
+    <a href="#special"></a>
+    <h4>Special characters</h4>
+    <hr>
+
+    <b>Soft line break</b>
+    <br>
+    <pre>\n</pre> Insert a forced line break, but only when in wrapping mode 2. (See the \q tag). Note that this is a lowercase n. In
+    all other wrapping modes, this is replaced by a regular space. This is rarely (if ever) actually useful. If you're not
+    sure whether you want this or \N, you probably want \N.
+
+    <br>
+    <br>
+    <b>Hard line break</b>
+    <br>
+    <pre>\N</pre> Insert a forced line break, regardless of wrapping mode. Note that this is an uppercase N.
+
+
+    <br>
+    <br>
+    <b>Hard space</b>
+    <br>
+    <pre>\h</pre>
+  </div>
+
+</body>
+
+</html>

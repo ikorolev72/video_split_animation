@@ -61,7 +61,7 @@ $effect->setAudioOutputSettings(
 $effect->setVideoOutputSettings(
     array(
         'format' => 'mpegts',
-        'preset' => 'veryslow',
+        'preset' => 'fast',
         'crf' => 16,
     )
 );

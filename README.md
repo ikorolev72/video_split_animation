@@ -13,12 +13,29 @@ Script print to stdout in json format array for each part :
 {
   "info": {
     "input": "ramzan_empty.mp4",
-    "outputHeight": 480
+    "outputPrefix": "output",
+    "outputHeight": 480,
+    "outputWidth": 480
   },
   "timeline": [
     {
       "start": 0,
       "end": 3.12,
+      "animation": {
+        "effect": "textAnimation",
+        "start": 0,
+        "end": 3.12,
+        "fadeIn": 0.5,
+        "fadeOut": 0.5,
+        "text": {
+          "text": "Hello Ibraham",
+          "x": 300,
+          "y": 100,
+          "color": "&H0000FFFF",
+          "font": "Verdana",
+          "size": 40
+        }
+      }      
     },    
     ...
     {
@@ -45,7 +62,10 @@ Script print to stdout in json format array for each part :
 
 ## Animation
 This script do the animation by input json.
-Now 
+Now ready effects:
+
+    +   textAnimation - enable text in any moment with ( or without ) fade in/out
+    +   textAndImageAnimation - enable text and image in any moment with ( or without ) fade in/out
 
 ### How to run
 Take json file in format like output of `split.php` 

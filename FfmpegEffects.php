@@ -6,7 +6,7 @@
  * and have several function for effects, like
  * transitions, mix audio, etc
  * @author korolev-ia [at] yandex.ru
- * @version 3.0.3
+ * @version 3.0.4
  */
 
 class FfmpegEffects
@@ -487,39 +487,114 @@ class FfmpegEffects
         $input,
         $assFile,
         $data,
-        $output
+        $output,
+        $width = 852,
+        $height = 480
     ) {
         $this->setLastError('');
         $ffmpeg = $this->getFfmpegSettings('general', 'ffmpeg');
         $ffmpegLogLevel = $this->getFfmpegSettings('general', 'ffmpegLogLevel');
         $videoOutSettingsString = $this->getVideoOutSettingsString();
-				$audioOutSettingsString = $this->getAudioOutSettingsString();
+        $audioOutSettingsString = $this->getAudioOutSettingsString();
 
-				$image=$data['image'];
-				$start=$data['start'];
-				$end=$data['end'];
-				$x=$data['x'];
-				$y=$data['y'];
-				$width=$data['width'];
-				$height=$data['height'];
-				$fadeInDuration=$data['fadein'];
-				$fadeOutDuration=$data['fadeout'];
-				$fadeIn='null';
-				$fadeOut='null';
-				if( $fadeInDuration ) {
-					$fadeIn=" fade=in:st=$start:d=$fadeInDuration";
-				}
-				if( $fadeOutDuration ) {
-					$fadeOut=" fade=out:st=".($end-$fadeOutDuration).":d=$fadeOutDuration";
-				}
+        $start = $data['start'];
+        $end = $data['end'];
+        $fadeInDuration = $data['fadeIn'];
+        $fadeOutDuration = $data['fadeOut'];
+        $fadeIn = 'null';
+        $fadeOut = 'null';
+        if ($fadeInDuration) {
+            $fadeIn = " fade=in:st=$start:d=$fadeInDuration:alpha=1";
+        }
+        if ($fadeOutDuration) {
+            $fadeOut = " fade=out:st=" . ($end - $fadeOutDuration) . ":d=$fadeOutDuration:alpha=1";
+        }
+        if (!$this->prepareSubtitles($data, $assFile, false, false, $width, $height)) {
+            $this->setLastError("Cannot save subtitles file $assFile");
+            return ('');
+        }
+        $image = $data['image']['image'];
+        $x = $data['image']['x'];
+        $y = $data['image']['y'];
+        $width = $data['image']['width'];
+        $height = $data['image']['height'];
 
+        // ffmpeg -y -loop 1 -r 1 -i photo.jpg  -i output_11_17.ts -filter_complex "[1:v] split [bg0][bg1]; [bg0] ass=1.ass [base]; [0:v] scale=w=200:h=200 [image]; [base][image] overlay=shortest=1, fade=in:st=1:d=1:alpha=1, fade=out:st=3:d=1:alpha=1 [base_image]; [bg1][base_image] overlay" -an -f mp4 out_1.mp4
 
         $cmd = join(" ", [
             "$ffmpeg -loglevel $ffmpegLogLevel  -y  ",
+            " -loop 1 -r 1 -i $image ",
             " -i  $input ",
-            " -r 1 -i $image ",
-            " -filter_complex  \"[0:0]null [orig]; [1:0] scale=w=$width:h=$height, $fadeIn, $fadeOut [image]; [orig][image] overlay=x=$x:y=$y, ass=$assFile\"  ",
-            "  $videoOutSettingsString $output",
+            " -filter_complex  \"[1:v] split [bg0][bg1]; [bg0] ass=$assFile [base]; ",
+            " [0:v] scale=w=$width:h=$height [image]; [base][image] overlay=x=$x:y=$y:shortest=1, $fadeIn, $fadeOut [base_image]; ",
+            " [bg1][base_image] overlay\"  ",
+            " -an $videoOutSettingsString $output",
+        ]
+        );
+        if ($this->getFfmpegSettings('general', 'showCommand')) {
+            echo "$cmd\n";
+        }
+        return $cmd;
+    }
+
+/**
+ * textAnimation
+ *
+ * @param string   $input
+ * @param string   $assFile temporary name for ass file
+ * @param array    $data
+ * @param string   $output
+ * @param string   $width
+ * @param string   $height
+ * @return string  Command ffmpeg
+ */
+
+    public function textAnimation(
+        $input,
+        $assFile,
+        $data,
+        $output,
+        $width = 852,
+        $height = 480
+    ) {
+        $this->setLastError('');
+        $ffmpeg = $this->getFfmpegSettings('general', 'ffmpeg');
+        $ffmpegLogLevel = $this->getFfmpegSettings('general', 'ffmpegLogLevel');
+        $videoOutSettingsString = $this->getVideoOutSettingsString();
+        $audioOutSettingsString = $this->getAudioOutSettingsString();
+
+        if (!$this->prepareSubtitles($data, $assFile, false, false, $width, $height)) {
+            $this->setLastError("Cannot save subtitles file $assFile");
+            return ('');
+        }
+        $start = $data['start'];
+        $end = $data['end'];
+
+        $fadeInDuration = $data['fadeIn'];
+        $fadeOutDuration = $data['fadeOut'];
+        $fadeIn = 'null';
+        $fadeOut = 'null';
+        if ($fadeInDuration) {
+            $fadeIn = " fade=in:st=$start:d=$fadeInDuration:alpha=1";
+        }
+        if ($fadeOutDuration) {
+            $fadeOut = " fade=out:st=" . ($end - $fadeOutDuration) . ":d=$fadeOutDuration:alpha=1";
+        }
+
+        /*$cmd = join(" ", [
+        "$ffmpeg -loglevel $ffmpegLogLevel  -y  ",
+        " -i  $input ",
+        " -filter_complex \" ass=$assFile, $fadeIn, $fadeOut \"  ",
+        " -an $videoOutSettingsString $output",
+        ]
+        );*/
+        $cmd = join(" ", [
+            "$ffmpeg -loglevel $ffmpegLogLevel  -y  ",
+            " -i  $input ",
+            " -filter_complex  \"[0:v] split [bg0][bg1]; [bg0] ass=$assFile [base]; ",
+            " [base]  $fadeIn, $fadeOut [base_image]; ",
+            " [bg1][base_image] overlay\"  ",
+            " -an $videoOutSettingsString $output",
         ]
         );
         if ($this->getFfmpegSettings('general', 'showCommand')) {
@@ -529,47 +604,11 @@ class FfmpegEffects
         return $cmd;
     }
 
-
-/**
- * textAnimation
- *
- * @param array   $input
- * @param string   $assFile Subtittles file in ass format
- * @param string   $output
- * @return string  Command ffmpeg
- */
-
-public function textAnimation(
-	$input,
-	$assFile,
-	$output
-) {
-	$this->setLastError('');
-	$ffmpeg = $this->getFfmpegSettings('general', 'ffmpeg');
-	$ffmpegLogLevel = $this->getFfmpegSettings('general', 'ffmpegLogLevel');
-	$videoOutSettingsString = $this->getVideoOutSettingsString();
-	$audioOutSettingsString = $this->getAudioOutSettingsString();
-
-	$cmd = join(" ", [
-			"$ffmpeg -loglevel $ffmpegLogLevel  -y  ",
-			" -i  $input ",
-			" -vf \" ass=$assFile\"  ",
-			"  $videoOutSettingsString $output",
-	]
-	);
-	if ($this->getFfmpegSettings('general', 'showCommand')) {
-			echo "$cmd\n";
-	}
-
-	return $cmd;
-}
-
-
 /**
  * prepareSubtitles
  * prepare ASS subtitles file
  *
- * @param    array     $data  array( "start": 0.1, "end": 2.8,           "fadein": 0.5, "fadeout": 0.5, "text": "Hello Ibraham", "x": 300, "y": 100, "color": "&H0000FFFF", "font": "Verdana", "size": 40 )
+ * @param    array     $data  array( "start": 0.1, "end": 2.8,           "fadeIn": 0.5, "fadeOut": 0.5, "text": "Hello Ibraham", "x": 300, "y": 100, "color": "&H0000FFFF", "font": "Verdana", "size": 40 )
  * @param    string    $assFile
  * @param    string    $assDirectStyle eg 'myStyle0: My,Arial,20,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,6,1,0,0,2,10,25,35,1')
  * @param    string    $assTextDirect  eg Dialogue: 0,0:00:02.93,0:00:05.61,YTStyle,,0,0,0,,{\1a&HFF&\2a&HFF&\3a&HFF&\4a&HFF&\fs66}\h{\r\fad(0,200)}{\move(640,564,640,498,0,1000)}hey JV partners its Todd gross here on {\1a&HFF&\2a&HFF&\3a&HFF&\4a&HFF&\fs66}\h{\r}
@@ -581,48 +620,46 @@ public function textAnimation(
         $assFile,
         $assDirectStyle = false,
         $assTextDirect = false,
-        $width = 854,
-        $height = 480
+        $width,
+        $height
     ) {
         $this->setLastError('');
 # default text settings
 
         $fade = '';
-        $x = 100;
-        $y = 100;
-        $size = 40;
-        $color = '&H0000FFFF';
+        $styleName = "StyleTextAndImage";
 
-        if (isset($data['font'])) {
-            $font = $data['font'];
-        }
-        if (isset($data['size'])) {
-            $size = $data['size'];
-        }
-        if (isset($data['y'])) {
-            $y = $data['y'];
-        }
-        if (isset($data['x'])) {
-            $x = $data['x'];
-        }
-        if (isset($data['color'])) {
-            $color = $data['color'];
-        }
-        if (isset($data['fadein']) && isset($data['fadeout'])) {
-            $fade = "{\\r\\fad(  " . ($data['fadein'] * 1000) . "," . ($data['fadeout'] * 1000) . ")}";
-				}
-				#print var_dump( $data );
-        $styleName = "StyleTextAndVideo";
-        $style = "Style: $styleName,$font,$size,$color,&H0000FFFF,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,1,5,5,8,$x,50,$y,1";
-        $text = "$fade" . $data['text'];
-        $since = $this->float2time($data['start']);
-        $to = $this->float2time($data['end']);
-        $dialog = "Dialogue: 0,$since,$to,$styleName,,0,0,0,,$text" . PHP_EOL;
         if ($assDirectStyle) {
             $style = $assDirectStyle;
+        } else {
+            $x = 100;
+            $y = 100;
+            $size = 40;
+            $color = '&H0000FFFF';
+            if (isset($data['text']['font'])) {
+                $font = $data['text']['font'];
+            }
+            if (isset($data['text']['size'])) {
+                $size = $data['text']['size'];
+            }
+            if (isset($data['text']['y'])) {
+                $y = $data['text']['y'];
+            }
+            if (isset($data['text']['x'])) {
+                $x = $data['text']['x'];
+            }
+            if (isset($data['text']['color'])) {
+                $color = $data['text']['color'];
+            }
+            $style = "Style: $styleName,$font,$size,$color,&H0000FFFF,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,1,0,0,7,$x,1,$y,1";
         }
         if ($assTextDirect) {
             $dialog = $assTextDirect;
+        } else {
+            $text = "$fade" . $data['text']['text'];
+            $since = $this->float2time($data['start']);
+            $to = $this->float2time($data['end']);
+            $dialog = "Dialogue: 0,$since,$to,$styleName,,0,0,0,,$text" . PHP_EOL;
         }
         $content = "[Script Info]
 ; Script generated by Aegisub 3.2.2
@@ -652,6 +689,196 @@ $dialog
 
         return (true);
 
+    }
+
+/**
+ * moneyCounterAnimation
+ * this function translate time in format 00:00:00.00 to seconds
+ *
+ * @param string   $input
+ * @param string   $assFile temporary name for ass file
+ * @param array    $data
+ * @param string   $output
+ * @param string   $width
+ * @param string   $height
+ * @return string  Command ffmpeg
+ */
+
+    public function moneyCounterAnimation(
+        $input,
+        $assFile,
+        $data,
+        $output,
+        $width = 852,
+        $height = 480
+    ) {
+        $this->setLastError('');
+        $ffmpeg = $this->getFfmpegSettings('general', 'ffmpeg');
+        $ffmpegLogLevel = $this->getFfmpegSettings('general', 'ffmpegLogLevel');
+        $videoOutSettingsString = $this->getVideoOutSettingsString();
+        $audioOutSettingsString = $this->getAudioOutSettingsString();
+        $styleName = "moneyCounter";
+        $font = $data['text']['font'];
+        $size = $data['text']['size'];
+        $color = $data['text']['color'];
+        $currency = $data['text']['currency'];
+        $style = "Style: $styleName,$font,$size,$color,&H0000FFFF,&H00FFFFFF,&H00000000,-1,0,0,0,100,100,0,0,1,2,0,7,100,1,100,1";
+
+        $dialog = '';
+        $fps = 30;
+        foreach ($data['move'] as $move) {
+            $start = $move['start'];
+            $end = $move['end'];
+            $counterStart = $move['counterStart'];
+            $counterEnd = $move['counterEnd'];
+            $x0 = $move['x0'];
+            $y0 = $move['y0'];
+            $x1 = $move['x1'];
+            $y1 = $move['y1'];
+            $duration = $end - $start;
+            $fps = 30;
+            $frequence = 1;
+            $steps = ($fps * $duration) / $frequence;
+            $delta = $duration / $steps;
+            $deltaX = ($x1 - $x0) / $steps;
+            $deltaY = ($y1 - $y0) / $steps;
+            if ($counterStart != $counterEnd) {
+                for ($i = 0; $i < $steps; $i++) {
+                    $text = sprintf("%s %.2f", "$", $counterStart + ($i * ($counterEnd - $counterStart) / ($steps - 1)));
+                    $since = $this->float2time($start + ($i * $delta));
+                    $to = $this->float2time($start + ($i + 1) * $delta);
+                    $x = $x0 + $i * $deltaX;
+                    $y = $y0 + $i * $deltaY;
+                    $dialog .= "Dialogue: 0,$since,$to,$styleName,,0,0,0,,{\\pos($x,$y)}$text" . PHP_EOL;
+                }
+            } else {
+                $text = sprintf("%s %.2f", "$", $counterStart);
+                $since = $this->float2time($start);
+                $to = $this->float2time($end);
+                $dialog .= "Dialogue: 0,$since,$to,$styleName,,0,0,0,,{\\move($x0,$y0,$x1,$y1)}$text" . PHP_EOL;
+            }
+        }
+        if (!$this->prepareSubtitles($data, $assFile, $style, $dialog, $width, $height)) {
+            $this->setLastError("Cannot save subtitles file $assFile");
+            return ('');
+        }
+
+        $fadeInDuration = $data['fadeIn'];
+        $fadeOutDuration = $data['fadeOut'];
+        $fadeIn = 'null';
+        $fadeOut = 'null';
+        if ($fadeInDuration) {
+            $fadeIn = " fade=in:st=$start:d=$fadeInDuration:alpha=1";
+        }
+        if ($fadeOutDuration) {
+            $fadeOut = " fade=out:st=" . ($end - $fadeOutDuration) . ":d=$fadeOutDuration:alpha=1";
+        }
+
+        $cmd = join(" ", [
+            "$ffmpeg -loglevel $ffmpegLogLevel  -y  ",
+            " -i  $input ",
+            " -filter_complex \" ass=$assFile, $fadeIn, $fadeOut \"  ",
+            " -an $videoOutSettingsString $output",
+        ]
+        );
+        /*
+        $cmd = join(" ", [
+        "$ffmpeg -loglevel $ffmpegLogLevel  -y  ",
+        " -i  $input ",
+        " -filter_complex  \"[0:v] split [bg0][bg1]; [bg0] ass=$assFile [base]; ",
+        " [base]  $fadeIn, $fadeOut [base_image]; ",
+        " [bg1][base_image] overlay\"  ",
+        " -an $videoOutSettingsString $output",
+        ]
+        );
+         */
+        if ($this->getFfmpegSettings('general', 'showCommand')) {
+            echo "$cmd\n";
+        }
+
+        return $cmd;
+    }
+
+/**
+ * textSkewShadowAnimation
+ * this function translate time in format 00:00:00.00 to seconds
+ *
+ * @param string   $input
+ * @param string   $assFile temporary name for ass file
+ * @param array    $data
+ * @param string   $output
+ * @param string   $width
+ * @param string   $height
+ * @return string  Command ffmpeg
+ */
+
+    public function textSkewShadowAnimation(
+        $input,
+        $assFile,
+        $data,
+        $output,
+        $width = 852,
+        $height = 480
+    ) {
+        $this->setLastError('');
+        $ffmpeg = $this->getFfmpegSettings('general', 'ffmpeg');
+        $ffmpegLogLevel = $this->getFfmpegSettings('general', 'ffmpegLogLevel');
+        $videoOutSettingsString = $this->getVideoOutSettingsString();
+        $audioOutSettingsString = $this->getAudioOutSettingsString();
+        $styleName = "textSkewShadowAnimation";
+        $text = $data['text']['text'];
+        $font = $data['text']['font'];
+        $size = $data['text']['size'];
+        $color = $data['text']['color'];
+        $y = $data['text']['y'];
+        $x = $data['text']['x'];
+        $start = $data['start'];
+        $end = $data['end'];        
+
+        $alignment = 2;
+        if (isset($data['text']['alignment'])) {
+            $alignment = $data['text']['alignment'];
+        }
+        if (isset($data['fadeIn']) && isset($data['fadeOut'])) {
+            $fade = "{\\fad(  " . ($data['fadeIn'] * 1000) . "," . ($data['fadeOut'] * 1000) . ")}";
+        }
+        $style = "Style: $styleName,$font,$size,$color,&H0000FFFF,&H00FFFFFF,&H593B3B3B,-1,0,0,0,100,100,0,0,1,0,0,$alignment,1,1,1,1";
+
+        $dialog = '';
+        $since = $this->float2time($start);
+        $to = $this->float2time($end);
+
+        $dialog .= "Dialogue: 0,$since,$to,$styleName,,0,0,0,,$fade{\\pos($x,$y)\\frx25,\\xshad00,\\yshad10\\an${alignment}}$text" . PHP_EOL;
+
+        if (!$this->prepareSubtitles($data, $assFile, $style, $dialog, $width, $height)) {
+            $this->setLastError("Cannot save subtitles file $assFile");
+            return ('');
+        }
+
+        $fadeInDuration = $data['fadeIn'];
+        $fadeOutDuration = $data['fadeOut'];
+        $fadeIn = 'null';
+        $fadeOut = 'null';
+        if ($fadeInDuration) {
+            $fadeIn = " fade=in:st=$start:d=$fadeInDuration:alpha=1";
+        }
+        if ($fadeOutDuration) {
+            $fadeOut = " fade=out:st=" . ($end - $fadeOutDuration) . ":d=$fadeOutDuration:alpha=1";
+        }
+
+        $cmd = join(" ", [
+            "$ffmpeg -loglevel $ffmpegLogLevel  -y  ",
+            " -i  $input ",
+            " -filter_complex \" ass=$assFile \"  ",
+            " -an $videoOutSettingsString $output",
+        ]
+        );
+
+        if ($this->getFfmpegSettings('general', 'showCommand')) {
+            echo "$cmd\n";
+        }
+
+        return $cmd;
     }
 
 /**
